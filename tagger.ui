@@ -2,14 +2,10 @@
 <interface>
   <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkListStore" id="liststore1">
+  <object class="GtkListStore" id="liststore_tag">
     <columns>
       <!-- column-name tag -->
       <column type="gchararray"/>
-      <!-- column-name dislike -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name like -->
-      <column type="GdkPixbuf"/>
     </columns>
   </object>
   <object class="GtkWindow" id="window1">
@@ -115,7 +111,7 @@
               <placeholder/>
             </child>
             <child>
-              <object class="GtkImage" id="image1">
+              <object class="GtkImage" id="image_pkg">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="stock">gtk-missing-image</property>
@@ -137,7 +133,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label1">
+          <object class="GtkLabel" id="label_pkg">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">label</property>
@@ -150,18 +146,69 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView" id="treeview1">
-            <property name="width_request">1</property>
+          <object class="GtkHBox" id="hbox3">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="model">liststore1</property>
-            <property name="headers_clickable">False</property>
-            <property name="search_column">0</property>
-            <property name="enable_grid_lines">horizontal</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkTreeView" id="treeview1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">liststore_tag</property>
+                <property name="headers_visible">False</property>
+                <property name="search_column">2</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVButtonBox" id="vbuttonbox1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="homogeneous">True</property>
+                <property name="layout_style">center</property>
+                <child>
+                  <object class="GtkButton" id="button_like">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="tooltip_text" translatable="yes">Select the tag(s) and like</property>
+                    <signal name="clicked" handler="on_button_like_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_dislike">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="tooltip_text" translatable="yes">Select the tag(s) and dislike</property>
+                    <signal name="clicked" handler="on_button_dislike_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack_type">end</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
             <property name="position">3</property>
           </packing>
         </child>
@@ -172,12 +219,12 @@
             <property name="spacing">4</property>
             <property name="layout_style">center</property>
             <child>
-              <object class="GtkButton" id="button1">
-                <property name="label">gtk-go-back</property>
+              <object class="GtkButton" id="button_stats">
+                <property name="label">Statistics</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <signal name="clicked" handler="on_button_stats_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -186,7 +233,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="entry2">
+              <object class="GtkEntry" id="entry_tag">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">●</property>
@@ -204,11 +251,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button3">
+              <object class="GtkButton" id="button_add_tag">
                 <property name="label" translatable="yes">Add tags</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_button_add_tag_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -217,13 +265,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="button_next_pkg">
                 <property name="label">gtk-go-forward</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
                 <property name="image_position">right</property>
+                <signal name="clicked" handler="on_button_next_pkg_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
