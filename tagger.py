@@ -45,7 +45,8 @@ class GnomeTagger(object):
         settings.props.gtk_button_images = True
 
         like_icon = GdkPixbuf.Pixbuf.new_from_file_at_size("like.png", 25, 25)
-        dislike_icon = GdkPixbuf.Pixbuf.new_from_file_at_size("dislike.png", 25, 25)
+        dislike_icon = GdkPixbuf.Pixbuf.new_from_file_at_size("dislike.png",
+                                                              25, 25)
 
         image = Gtk.Image()
         image.set_from_pixbuf(like_icon)
@@ -68,16 +69,15 @@ class GnomeTagger(object):
         treeview.append_column(column_text)
 
         dic = {
-                "on_button_next_pkg_clicked": self.next_pkg_action,
-                "on_button_add_tag_clicked": self.add_tag_action,
-                "on_button_like_clicked": self.like_action,
-                "on_button_dislike_clicked": self.dislike_action,
-                "on_button_stats_clicked": self.stats_action,
-            }
+            "on_button_next_pkg_clicked": self.next_pkg_action,
+            "on_button_add_tag_clicked": self.add_tag_action,
+            "on_button_like_clicked": self.like_action,
+            "on_button_dislike_clicked": self.dislike_action,
+            "on_button_stats_clicked": self.stats_action,
+        }
         self.builder.connect_signals(dic)
 
         self.get_package('firefox')
-
 
     def next_pkg_action(self, *args, **kw):
         """ Retrieve information about the next (random) package and update
@@ -86,13 +86,11 @@ class GnomeTagger(object):
         print "next_pkg_action"
         self.get_package()
 
-
     def add_tag_action(self, *args, **kw):
         """ Retrieve the tags from `entry_tag` and send them to the server,
         update the GUI afterward.
         """
         print "add_tag_action"
-
 
     def like_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -101,14 +99,12 @@ class GnomeTagger(object):
         """
         print "like_click"
 
-
     def dislike_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
         server that they have been 'dislicked'.
         If no tags are selected show an error dialog.
         """
         print "dislike_click"
-
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a new
@@ -128,19 +124,18 @@ class GnomeTagger(object):
             data = requests.get(TAGGERAPI + '/random/')
         jsondata = json.loads(data.text)
         self.set_package_info(
-                              name=jsondata['name'],
-                              summary=jsondata['summary'],
-                              tags=[tag['tag'] for tag in jsondata['tags']],
-                              icon_url=jsondata['icon'],
-                              )
-
+            name=jsondata['name'],
+            summary=jsondata['summary'],
+            tags=[tag['tag'] for tag in jsondata['tags']],
+            icon_url=jsondata['icon'],
+        )
 
     def set_package_info(self, name, summary, tags, icon_url):
         """ Set the package information into the GUI.
         """
         image = self.builder.get_object("image_pkg")
-        response=urllib2.urlopen(icon_url)
-        loader=GdkPixbuf.PixbufLoader()
+        response = urllib2.urlopen(icon_url)
+        loader = GdkPixbuf.PixbufLoader()
         loader.write(response.read())
         image.set_from_pixbuf(loader.get_pixbuf())
         loader.close()
