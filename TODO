@@ -1,0 +1,9 @@
+* error handling from the info returned from the server
+* try speedup UI by
+  - at start up get one packge, cache another 3 using its own process
+  - when requesting a new package, use the cache and repopulate it using its
+    own process
+* add the statistics dialog
+  - UI
+  - logic
+
