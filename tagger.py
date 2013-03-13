@@ -122,7 +122,7 @@ class GnomeTagger(object):
         print "like_click"
         msg = self.builder.get_object("label_msg")
         msg.set_text('')
-        data = {'pkgname': self.pkgname, 'vote':'1'}
+        data = {'pkgname': self.pkgname, 'vote': '1'}
         treeview = self.builder.get_object("treeview1")
         selection = treeview.get_selection()
         tree_model, rows = selection.get_selected_rows()
@@ -147,7 +147,7 @@ class GnomeTagger(object):
         print "dislike_click"
         msg = self.builder.get_object("label_msg")
         msg.set_text('')
-        data = {'pkgname': self.pkgname, 'vote':'-1'}
+        data = {'pkgname': self.pkgname, 'vote': '-1'}
         treeview = self.builder.get_object("treeview1")
         selection = treeview.get_selection()
         tree_model, rows = selection.get_selected_rows()
