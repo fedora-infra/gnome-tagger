@@ -34,6 +34,8 @@ TAGGERAPI = 'http://209.132.184.171/'
 class GnomeTagger(object):
 
     def __init__(self):
+        self.pkgname = None
+
         self.builder = Gtk.Builder()
         self.builder.add_from_file("tagger.ui")
         window = self.builder.get_object("window1")
@@ -61,6 +63,8 @@ class GnomeTagger(object):
         dislikebutton.add(image)
 
         treeview = self.builder.get_object("treeview1")
+        treeselection = treeview.get_selection()
+        treeselection.set_mode(Gtk.SelectionMode.MULTIPLE)
 
         cell_tag = Gtk.CellRendererText()
         column_text = Gtk.TreeViewColumn("Tags")
@@ -91,6 +95,15 @@ class GnomeTagger(object):
         update the GUI afterward.
         """
         print "add_tag_action"
+        tagfield = self.builder.get_object("entry_tag")
+        entries = tagfield.get_text()
+        entries = [entry.strip() for entry in entries.split(',')]
+        tagfield.set_text('')
+        if entries != ['']:
+            data = {'pkgname': self.pkgname, 'tag': ','.join(entries)}
+            req = requests.put('%s/tag/guake/' % TAGGERAPI, data=data)
+            print req.text
+            self.get_package(self.pkgname)
 
     def like_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -98,6 +111,17 @@ class GnomeTagger(object):
         If no tags are selected show an error dialog.
         """
         print "like_click"
+        data = {'pkgname': self.pkgname, 'vote':'1'}
+        treeview = self.builder.get_object("treeview1")
+        selection = treeview.get_selection()
+        tree_model, rows = selection.get_selected_rows()
+        for tree_iter in rows:
+            if tree_iter:
+                tag = tree_model[tree_iter][0]
+                data['tag'] = tag
+                req = requests.put('%s/vote/guake/' % TAGGERAPI,
+                                   data=data)
+                print req.text
 
     def dislike_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -105,6 +129,17 @@ class GnomeTagger(object):
         If no tags are selected show an error dialog.
         """
         print "dislike_click"
+        data = {'pkgname': self.pkgname, 'vote':'-1'}
+        treeview = self.builder.get_object("treeview1")
+        selection = treeview.get_selection()
+        tree_model, rows = selection.get_selected_rows()
+        for tree_iter in rows:
+            if tree_iter:
+                tag = tree_model[tree_iter][0]
+                data['tag'] = tag
+                req = requests.put('%s/vote/guake/' % TAGGERAPI,
+                                   data=data)
+                print req.text
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a new
@@ -133,6 +168,8 @@ class GnomeTagger(object):
     def set_package_info(self, name, summary, tags, icon_url):
         """ Set the package information into the GUI.
         """
+        self.pkgname = name
+
         image = self.builder.get_object("image_pkg")
         response = urllib2.urlopen(icon_url)
         loader = GdkPixbuf.PixbufLoader()
@@ -141,7 +178,8 @@ class GnomeTagger(object):
         loader.close()
 
         label = self.builder.get_object("label_pkg")
-        label.set_text("%s\n%s" % (name, summary or ''))
+        label.set_text("<b>%s</b>\n%s" % (name, summary or ''))
+        label.set_use_markup(True)
 
         treeview = self.builder.get_object("treeview1")
         liststore = Gtk.ListStore(str)
