@@ -88,6 +88,8 @@ class GnomeTagger(object):
         the GUI accordingly.
         """
         print "next_pkg_action"
+        msg = self.builder.get_object("label_msg")
+        msg.set_text('')
         self.get_package()
 
     def add_tag_action(self, *args, **kw):
@@ -95,6 +97,8 @@ class GnomeTagger(object):
         update the GUI afterward.
         """
         print "add_tag_action"
+        msg = self.builder.get_object("label_msg")
+        msg.set_text('')
         tagfield = self.builder.get_object("entry_tag")
         entries = tagfield.get_text()
         entries = [entry.strip() for entry in entries.split(',')]
@@ -103,6 +107,11 @@ class GnomeTagger(object):
             data = {'pkgname': self.pkgname, 'tag': ','.join(entries)}
             req = requests.put('%s/tag/guake/' % TAGGERAPI, data=data)
             print req.text
+            jsonreq = json.loads(req.text)
+            if req.status_code != 200:
+                msg.set_text(jsonreq['error'])
+            else:
+                msg.set_text('\n'.join(jsonreq['messages']))
             self.get_package(self.pkgname)
 
     def like_action(self, *args, **kw):
@@ -111,6 +120,8 @@ class GnomeTagger(object):
         If no tags are selected show an error dialog.
         """
         print "like_click"
+        msg = self.builder.get_object("label_msg")
+        msg.set_text('')
         data = {'pkgname': self.pkgname, 'vote':'1'}
         treeview = self.builder.get_object("treeview1")
         selection = treeview.get_selection()
@@ -122,6 +133,11 @@ class GnomeTagger(object):
                 req = requests.put('%s/vote/guake/' % TAGGERAPI,
                                    data=data)
                 print req.text
+                jsonreq = json.loads(req.text)
+                if req.status_code != 200:
+                    msg.set_text(jsonreq['error'])
+                else:
+                    msg.set_text('\n'.join(jsonreq['messages']))
 
     def dislike_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -129,6 +145,8 @@ class GnomeTagger(object):
         If no tags are selected show an error dialog.
         """
         print "dislike_click"
+        msg = self.builder.get_object("label_msg")
+        msg.set_text('')
         data = {'pkgname': self.pkgname, 'vote':'-1'}
         treeview = self.builder.get_object("treeview1")
         selection = treeview.get_selection()
@@ -140,6 +158,11 @@ class GnomeTagger(object):
                 req = requests.put('%s/vote/guake/' % TAGGERAPI,
                                    data=data)
                 print req.text
+                jsonreq = json.loads(req.text)
+                if req.status_code != 200:
+                    msg.set_text(jsonreq['error'])
+                else:
+                    msg.set_text('\n'.join(jsonreq['messages']))
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a new
