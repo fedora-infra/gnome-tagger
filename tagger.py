@@ -22,8 +22,8 @@
 main gnome-tagger file.
 '''
 
-import urllib2
 import json
+import urllib2
 import requests
 import sys
 
