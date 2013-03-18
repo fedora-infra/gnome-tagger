@@ -280,17 +280,22 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
+        msg = self.builder.get_object('label_msg')
+        msg.set_text('')
         url = '%s/random/' % (TAGGERAPI)
         if name:
             url = '%s/%s/' % (TAGGERAPI, name)
         data = requests.get(url)
         jsondata = json.loads(data.text)
-        self.set_package_info(
-            name=jsondata['name'],
-            summary=jsondata['summary'],
-            tags=[tag['tag'] for tag in jsondata['tags']],
-            icon_url=jsondata['icon'],
-        )
+        if data.status_code == 200:
+            self.set_package_info(
+                name=jsondata['name'],
+                summary=jsondata['summary'],
+                tags=[tag['tag'] for tag in jsondata['tags']],
+                icon_url=jsondata['icon'],
+            )
+        else:
+            msg.set_text(jsondata['error'])
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
 
