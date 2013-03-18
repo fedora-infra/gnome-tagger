@@ -114,13 +114,20 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         self.get_package('firefox')
 
+    def set_messsage(self, message, msgtype='info'):
+        """ Set a message into the information label. """
+        msg = self.builder.get_object('label_msg')
+        if msgtype == 'info':
+            msg.set_markup('<span foreground="green">%s</span>' % message)
+        elif msgtype == 'error':
+            msg.set_markup('<span foreground="red">%s</span>' % message)
+
     def next_pkg_action(self, *args, **kw):
         """ Retrieve information about the next (random) package and update
         the GUI accordingly.
         """
         print 'next_pkg_action'
-        msg = self.builder.get_object('label_msg')
-        msg.set_text('')
+        self.set_messsage('')
         self.get_package()
 
     def add_tag_action(self, *args, **kw):
@@ -133,8 +140,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
-        msg = self.builder.get_object('label_msg')
-        msg.set_text('')
+        self.set_messsage('')
         tagfield = self.builder.get_object('entry_tag')
         entries = tagfield.get_text()
         entries = [entry.strip() for entry in entries.split(',')]
@@ -145,12 +151,16 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             print req.text
             jsonreq = json.loads(req.text)
             if req.status_code != 200:
-                msg.set_text(jsonreq['error'])
+                self.set_messsage(jsonreq['error'], msgtype='error')
+                msg.set_text()
             else:
-                msg.set_text('\n'.join(jsonreq['messages']))
+                self.set_messsage('\n'.join(jsonreq['messages']))
             self.get_package(self.pkgname)
         else:
-            msg.set_text('No tag(s) to add')
+            self.set_messsage('No tag(s) to add', msgtype='error')
+            cursor = Gdk.Cursor(Gdk.CursorType.ARROW)
+            self.get_root_window().set_cursor(cursor)
+            Gdk.flush()
 
     def like_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -158,12 +168,14 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         If no tags are selected show an error dialog.
         """
         print 'like_click'
-        msg = self.builder.get_object('label_msg')
-        msg.set_text('')
+        self.set_messsage('')
         data = {'pkgname': self.pkgname, 'vote': '1'}
         treeview = self.builder.get_object('treeview1')
         selection = treeview.get_selection()
         tree_model, rows = selection.get_selected_rows()
+        if not rows:
+            self.set_messsage('No tag(s) selected', msgtype='error')
+            return
         for tree_iter in rows:
             if tree_iter:
                 tag = tree_model[tree_iter][0]
@@ -173,11 +185,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
-                    msg.set_text(jsonreq['error'])
+                    self.set_messsage(jsonreq['error'], msgtype='error')
                 else:
-                    msg.set_text('\n'.join(jsonreq['messages']))
-        else:
-            msg.set_text('No tag(s) selected')
+                    self.set_messsage('\n'.join(jsonreq['messages']))
+                    
 
     def dislike_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -185,12 +196,14 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         If no tags are selected show an error dialog.
         """
         print 'dislike_click'
-        msg = self.builder.get_object('label_msg')
-        msg.set_text('')
+        self.set_messsage('')
         data = {'pkgname': self.pkgname, 'vote': '-1'}
         treeview = self.builder.get_object('treeview1')
         selection = treeview.get_selection()
         tree_model, rows = selection.get_selected_rows()
+        if not rows:
+            self.set_messsage('No tag(s) selected', msgtype='error')
+            return
         for tree_iter in rows:
             if tree_iter:
                 tag = tree_model[tree_iter][0]
@@ -200,11 +213,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
-                    msg.set_text(jsonreq['error'])
+                    self.set_messsage(jsonreq['error'], msgtype='error')
                 else:
-                    msg.set_text('\n'.join(jsonreq['messages']))
-        else:
-            msg.set_text('No tag(s) selected')
+                    self.set_messsage('\n'.join(jsonreq['messages']))
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a
