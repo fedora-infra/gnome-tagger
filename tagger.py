@@ -62,7 +62,12 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         # and attach it to the grid
         grid.attach(self.builder.get_object('vbox1'), 0, 0, 1, 1)
 
-        # option 'about'
+        # menu option 'statistics'
+        stats_action = Gio.SimpleAction.new('statistics', None)
+        stats_action.connect('activate', self.stats_action)
+        app.add_action(stats_action)
+
+        # menu option 'about'
         about_action = Gio.SimpleAction.new('about', None)
         about_action.connect('activate', self.about_action)
         app.add_action(about_action)
@@ -108,7 +113,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             'on_button_add_tag_clicked': self.add_tag_action,
             'on_button_like_clicked': self.like_action,
             'on_button_dislike_clicked': self.dislike_action,
-            'on_button_stats_clicked': self.stats_action,
+            'on_button_scores_clicked': self.scores_action,
         }
         self.builder.connect_signals(dic)
 
@@ -287,6 +292,11 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.get_root_window().set_cursor(cursor)
         win.show_all()
 
+    def scores_action(self, button):
+        """ Shows the leaderboard window with the scores information.
+        """
+        print 'scores_action'
+
     def get_package(self, name=None):
         """ Retrieve the information about a package if the name if set, a
         random package if the name is None.
@@ -457,25 +467,16 @@ class GnomeTagger(Gtk.Application):
         # create a menu
         menu = Gio.Menu()
         # append to the menu three options
-        menu.append('Preferences', 'app.preference')
+        menu.append('Statistics', 'app.statistics')
         menu.append('About', 'app.about')
         menu.append('Quit', 'app.quit')
         # set the menu as menu of the application
         self.set_app_menu(menu)
 
-        # option 'preference'
-        new_action = Gio.SimpleAction.new('preference', None)
-        new_action.connect('activate', self.preference_action)
-        self.add_action(new_action)
-
         # option 'quit'
         quit_action = Gio.SimpleAction.new('quit', None)
         quit_action.connect('activate', self.quit_action)
         self.add_action(quit_action)
-
-    # callback function for 'new'
-    def preference_action(self, action, parameter):
-        print 'preference clicked'
 
     # callback function for 'quit'
     def quit_action(self, action, parameter):
