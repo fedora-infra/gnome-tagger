@@ -46,12 +46,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         #self.set_default_size(400, 200)
 
-        # a grid to attach the toolbar (see below)
         grid = Gtk.Grid()
         self.add(grid)
-        # we have to show the grid (and therefore the toolbar) with show(),
-        # as show_all() would show also the buttons in the toolbar that we want to
-        # be hidden (such as the leave_fullscreen button)
         grid.show()
 
         # a builder to add the UI designed with Glade to the grid:
@@ -70,9 +66,16 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         about_action.connect('activate', self.about_action)
         app.add_action(about_action)
 
+        # search box
+        entry_search = self.builder.get_object('entry_search')
+        entry_search.connect("activate", self.search_action)
+        entry_search.connect("icon-release", self.search_icon_action)
+
+        # show icons on the button
         settings = Gtk.Settings.get_default()
         settings.props.gtk_button_images = True
 
+        # like/dislike button to vote on tags
         like_icon = GdkPixbuf.Pixbuf.new_from_file_at_size('like.png', 25, 25)
         dislike_icon = GdkPixbuf.Pixbuf.new_from_file_at_size('dislike.png',
                                                               25, 25)
@@ -396,6 +399,25 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
         window.show_all()
+
+    def search_action(self, *args, **kw):
+        """ Search the package using the search box entry. """
+        print 'search_action'
+        entry_search = self.builder.get_object('entry_search')
+        pkg_search = entry_search.get_text().strip()
+        if pkg_search:
+            self.get_package(name=pkg_search)
+        entry_search.set_text('')
+
+    def search_icon_action(self, entry, icon_pos, even):
+        """ Search or clear the search box according to the icon clicked.
+        """
+        print 'search_icon_action'
+        if icon_pos == Gtk.EntryIconPosition.PRIMARY:
+            self.search_action()
+        else:
+            entry_search = self.builder.get_object('entry_search')
+            entry_search.set_text('')
 
 
 class GnomeTagger(Gtk.Application):
