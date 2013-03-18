@@ -39,7 +39,8 @@ TAGGERAPI = 'http://209.132.184.171/'
 class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
     def __init__(self, app):
-        window = Gtk.Window.__init__(self, title='GNOME Tagger', application=app)
+        window = Gtk.Window.__init__(self, title='GNOME Tagger',
+                                     application=app)
 
         self.pkgname = None
         self.statistics = None
@@ -206,10 +207,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             msg.set_text('No tag(s) selected')
 
     def stats_action(self, *args, **kw):
-        """ Retrieves statistics from the server and display them in a new
-        dialog.
-        These statistics include general statistics on the coverage of Tag
-        per packages and the leaderboard of the game.
+        """ Retrieves statistics from the server and display them in a
+        new dialog.
+        These statistics include general statistics on the coverage of
+        Tag per packages and the leaderboard of the game.
         """
         print 'stats_action'
 
@@ -236,8 +237,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                          str(self.statistics['with_tags'])])
         listmodel.append(['Average tags per package',
                          '%.2f' % self.statistics['tags_per_package']])
-        listmodel.append(['Average tags per package (that have at least one tag)',
-                         '%.2f' % self.statistics['tags_per_package_no_zeroes']])
+        listmodel.append(['Average tags per package '
+                          '(that have at least one tag)',
+                         '%.2f' % self.statistics[
+                         'tags_per_package_no_zeroes']])
 
         # a treeview to see the data stored in the model
         view = Gtk.TreeView(model=listmodel)
@@ -248,8 +251,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             cell = Gtk.CellRendererText()
             # the text in the first column should be in boldface
             if i == 0:
-                cell.props.weight_set=True
-                cell.props.weight=Pango.Weight.BOLD
+                cell.props.weight_set = True
+                cell.props.weight = Pango.Weight.BOLD
             # the column is created
             col = Gtk.TreeViewColumn('', cell, text=i)
             # and it is appended to the treeview
@@ -339,8 +342,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         aboutdialog.set_website('http://github.com/fedora-infra/gnome-tagger')
         aboutdialog.set_website_label('GNOME Tagger Website')
 
-        # we do not want to show the title, which by default would be 'About AboutDialog Example'
-        # we have to reset the title of the messagedialog window after setting the program name
+        # we do not want to show the title, which by default would be
+        # 'About AboutDialog Example' we have to reset the title of the
+        # messagedialog window after setting the program name
         aboutdialog.set_title('')
 
         # to close the aboutdialog when 'close' is clicked we connect the
@@ -379,8 +383,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                          str(self.statistics['with_tags'])])
         listmodel.append(['Average tags per package',
                          '%.3f' % self.statistics['tags_per_package']])
-        listmodel.append(['Average tags per package (that have at least one tag)',
-                         '%.4f' % self.statistics['tags_per_package_no_zeroes']])
+        listmodel.append(['Average tags per package '
+                         '(that have at least one tag)',
+                         '%.4f' % self.statistics[
+                         'tags_per_package_no_zeroes']])
 
         # a treeview to see the data stored in the model
         view = Gtk.TreeView(model=listmodel)
@@ -391,8 +397,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             cell = Gtk.CellRendererText()
             # the text in the first column should be in boldface
             if i == 0:
-                cell.props.weight_set=True
-                cell.props.weight=Pango.Weight.BOLD
+                cell.props.weight_set = True
+                cell.props.weight = Pango.Weight.BOLD
             # the column is created
             col = Gtk.TreeViewColumn('', cell, text=i)
             # and it is appended to the treeview
