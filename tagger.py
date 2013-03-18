@@ -27,7 +27,11 @@ import json
 import requests
 import sys
 
-from gi.repository import Gtk, GdkPixbuf, Gio
+from gi.repository import Pango
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import Gio
+from gi.repository import Gtk
 
 TAGGERAPI = 'http://209.132.184.171/'
 
@@ -38,8 +42,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         window = Gtk.Window.__init__(self, title='GNOME Tagger', application=app)
 
         self.pkgname = None
+        self.statistics = None
 
-        
         #self.set_default_size(400, 200)
 
         # a grid to attach the toolbar (see below)
@@ -200,24 +204,66 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         per packages and the leaderboard of the game.
         """
         print 'stats_action'
-        dialog = Gtk.Dialog()
-        dialog.set_title('Statistics')
-        # The window defined in the constructor (self) is the parent of the dialog.
-        # Furthermore, the dialog is on top of the parent window
-        dialog.set_transient_for(self)
-        # set modal true: no interaction with other windows of the application
-        dialog.set_modal(True)
-        # add a button to the dialog window
-        dialog.add_button(button_text='OK', response_id=Gtk.ResponseType.OK)
-        # connect the 'response' signal (the button has been clicked) to the function on_response()
-        dialog.connect('response', self.on_close)
 
-        # get the content area of the dialog, add a label to it
-        content_area = dialog.get_content_area()
-        label = Gtk.Label('This demonstrates a dialog with a label')
-        content_area.add(label)
-        # show the dialog
-        dialog.show_all()
+        win = Gtk.Window(title='GNOME Tagger - Statistics')
+        win.connect('delete-event', Gtk.main_quit)
+
+        cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        win.get_root_window().set_cursor(cursor)
+        Gdk.flush()
+
+        if not self.statistics:
+            data = requests.get(TAGGERAPI + '/statistics/')
+            jsondata = json.loads(data.text)
+            self.statistics = jsondata['summary']
+
+        listmodel = Gtk.ListStore(str, str)
+        listmodel.append(['Total number of packages',
+                         str(self.statistics['total_packages'])])
+        listmodel.append(['Total number of tags',
+                         str(self.statistics['total_unique_tags'])])
+        listmodel.append(['Packages with no tags',
+                         str(self.statistics['no_tags'])])
+        listmodel.append(['Packages with tags',
+                         str(self.statistics['with_tags'])])
+        listmodel.append(['Average tags per package',
+                         '%.2f' % self.statistics['tags_per_package']])
+        listmodel.append(['Average tags per package (that have at least one tag)',
+                         '%.2f' % self.statistics['tags_per_package_no_zeroes']])
+
+        # a treeview to see the data stored in the model
+        view = Gtk.TreeView(model=listmodel)
+        view.set_headers_visible(False)
+        # for each column
+        for i in range(2):
+            # cellrenderer to render the text
+            cell = Gtk.CellRendererText()
+            # the text in the first column should be in boldface
+            if i == 0:
+                cell.props.weight_set=True
+                cell.props.weight=Pango.Weight.BOLD
+            # the column is created
+            col = Gtk.TreeViewColumn('', cell, text=i)
+            # and it is appended to the treeview
+            view.append_column(col)
+
+        # a grid to attach the widgets
+        grid = Gtk.Grid()
+        grid.attach(view, 0, 0, 6, 1)
+
+        button = Gtk.Button(label="ok")
+        button.connect("clicked", self.win_close, win)
+        button_refresh = Gtk.Button(label="Refresh")
+        button_refresh.connect("clicked", self.refresh_stats, win, grid)
+
+        grid.attach(button_refresh, 4, 1, 1, 1)
+        grid.attach(button, 5, 1, 1, 1)
+
+        # attach the grid to the window
+        win.add(grid)
+        cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+        self.get_root_window().set_cursor(cursor)
+        win.show_all()
 
     def get_package(self, name=None):
         """ Retrieve the information about a package if the name if set, a
@@ -285,9 +331,61 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         # show the aboutdialog
         aboutdialog.show()
 
-    def on_close(self, action, parameter):
+    def on_close(self, action, parameter=None):
         """ Called to close the about dialog. """
         action.destroy()
+
+    def win_close(self, action, window):
+        """ Called to close the statistics window. """
+        window.destroy()
+
+    def refresh_stats(self, action, window, grid):
+        """ Refresh the statistics on the statistics window. """
+        print "refresh_stats"
+        cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        window.get_root_window().set_cursor(cursor)
+        Gdk.flush()
+
+        data = requests.get(TAGGERAPI + '/statistics/')
+        jsondata = json.loads(data.text)
+        self.statistics = jsondata['summary']
+
+        listmodel = Gtk.ListStore(str, str)
+        listmodel.append(['Total number of packages',
+                         str(self.statistics['total_packages'])])
+        listmodel.append(['Total number of tags',
+                         str(self.statistics['total_unique_tags'])])
+        listmodel.append(['Packages with no tags',
+                         str(self.statistics['no_tags'])])
+        listmodel.append(['Packages with tags',
+                         str(self.statistics['with_tags'])])
+        listmodel.append(['Average tags per package',
+                         '%.3f' % self.statistics['tags_per_package']])
+        listmodel.append(['Average tags per package (that have at least one tag)',
+                         '%.4f' % self.statistics['tags_per_package_no_zeroes']])
+
+        # a treeview to see the data stored in the model
+        view = Gtk.TreeView(model=listmodel)
+        view.set_headers_visible(False)
+        # for each column
+        for i in range(2):
+            # cellrenderer to render the text
+            cell = Gtk.CellRendererText()
+            # the text in the first column should be in boldface
+            if i == 0:
+                cell.props.weight_set=True
+                cell.props.weight=Pango.Weight.BOLD
+            # the column is created
+            col = Gtk.TreeViewColumn('', cell, text=i)
+            # and it is appended to the treeview
+            view.append_column(col)
+
+        # a grid to attach the widgets
+        grid.attach(view, 0, 0, 6, 1)
+
+        cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+        self.get_root_window().set_cursor(cursor)
+        window.show_all()
 
 
 class GnomeTagger(Gtk.Application):
