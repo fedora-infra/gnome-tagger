@@ -81,6 +81,12 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         settings = Gtk.Settings.get_default()
         settings.props.gtk_button_images = True
 
+        # add icon to the Scores button
+        scorebutton = self.builder.get_object('button_scores')
+        image = Gtk.Image()
+        image.set_from_stock(Gtk.STOCK_ABOUT, Gtk.IconSize.BUTTON)
+        scorebutton.set_image(image)
+
         # like/dislike button to vote on tags
         like_icon = GdkPixbuf.Pixbuf.new_from_file_at_size('like.png', 25, 25)
         dislike_icon = GdkPixbuf.Pixbuf.new_from_file_at_size('dislike.png',
