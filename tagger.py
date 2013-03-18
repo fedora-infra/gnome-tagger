@@ -124,6 +124,11 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         update the GUI afterward.
         """
         print 'add_tag_action'
+
+        cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        self.get_root_window().set_cursor(cursor)
+        Gdk.flush()
+
         msg = self.builder.get_object('label_msg')
         msg.set_text('')
         tagfield = self.builder.get_object('entry_tag')
@@ -209,7 +214,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         win.connect('delete-event', Gtk.main_quit)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
-        win.get_root_window().set_cursor(cursor)
+        self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
         if not self.statistics:
@@ -269,10 +274,13 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Retrieve the information about a package if the name if set, a
         random package if the name is None.
         """
+        cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        self.get_root_window().set_cursor(cursor)
+        Gdk.flush()
+        url = '%s/random/' % (TAGGERAPI)
         if name:
-            data = requests.get(TAGGERAPI + name + '/')
-        else:
-            data = requests.get(TAGGERAPI + '/random/')
+            url = '%s/%s/' % (TAGGERAPI, name)
+        data = requests.get(url)
         jsondata = json.loads(data.text)
         self.set_package_info(
             name=jsondata['name'],
@@ -280,6 +288,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             tags=[tag['tag'] for tag in jsondata['tags']],
             icon_url=jsondata['icon'],
         )
+        cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+        self.get_root_window().set_cursor(cursor)
 
     def set_package_info(self, name, summary, tags, icon_url):
         """ Set the package information into the GUI.
@@ -343,7 +353,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Refresh the statistics on the statistics window. """
         print "refresh_stats"
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
-        window.get_root_window().set_cursor(cursor)
+        self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
         data = requests.get(TAGGERAPI + '/statistics/')
