@@ -4,6 +4,7 @@
   - at start up get one packge, cache another 3 using its own process
   - when requesting a new package, use the cache and repopulate it using its
     own process
+  - save the cached data into disk so that it can be re-used at the next start-up
 * add the statistics dialog
   - UI
   - logic
