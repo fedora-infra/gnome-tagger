@@ -302,6 +302,58 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Shows the leaderboard window with the scores information.
         """
         print 'scores_action'
+        win = Gtk.Window(title='GNOME Tagger - Leaderboard')
+        win.connect('delete-event', Gtk.main_quit)
+        win.set_default_size(400, 200)
+
+        cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        self.get_root_window().set_cursor(cursor)
+        Gdk.flush()
+
+        data = requests.get(TAGGERAPI + '/leaderboard/')
+        jsondata = json.loads(data.text)
+
+        listmodel = Gtk.ListStore(str, str, str)
+        for key in sorted([int(it) for it in jsondata.keys()]):
+            listmodel.append([str(key),
+                              jsondata[str(key)]['name'],
+                              str(jsondata[str(key)]['score'])])
+
+        headers = ['Rank', 'User', 'Score']
+        # a treeview to see the data stored in the model
+        view = Gtk.TreeView(model=listmodel)
+        view.set_headers_visible(True)
+        # for each column
+        for i in range(3):
+            # cellrenderer to render the text
+            cell = Gtk.CellRendererText()
+            # the text in the first column should be in boldface
+            if i == 0:
+                cell.props.weight_set = True
+                cell.props.weight = Pango.Weight.BOLD
+            col = Gtk.TreeViewColumn(headers[i], cell, text=i)
+            if i == 1:
+                col.set_min_width(250)
+            # the column is created
+            # and it is appended to the treeview
+            view.append_column(col)
+
+        # a grid to attach the widgets
+        box = Gtk.Table(6, 1, False)
+        box.set_vexpand(True)
+        box.set_hexpand(True)
+
+        button = Gtk.Button(label="ok")
+        button.connect("clicked", self.win_close, win)
+
+        box.attach(view, 0, 6, 0, 1)
+        box.attach(button, 5, 6, 1, 2)
+
+        # attach the grid to the window
+        win.add(box)
+        cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+        self.get_root_window().set_cursor(cursor)
+        win.show_all()
 
     def get_package(self, name=None):
         """ Retrieve the information about a package if the name if set, a
