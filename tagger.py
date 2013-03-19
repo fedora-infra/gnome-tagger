@@ -32,8 +32,11 @@ from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import Gio
 from gi.repository import Gtk
+from gi.repository import WebKit
 
-TAGGERAPI = 'http://209.132.184.171/'
+
+#TAGGERAPI = 'http://209.132.184.171/'
+TAGGERAPI = 'http://127.0.0.1:5000/'
 
 
 class GnomeTaggerWindow(Gtk.ApplicationWindow):
@@ -44,6 +47,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         self.pkgname = None
         self.statistics = None
+        self.user = None
 
         #self.set_default_size(400, 200)
 
@@ -147,6 +151,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """
         print 'add_tag_action'
 
+        if not self.user:
+            self.get_user_info()
+        print self.user
+
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
@@ -199,7 +207,6 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                     self.set_messsage(jsonreq['error'], msgtype='error')
                 else:
                     self.set_messsage('\n'.join(jsonreq['messages']))
-                    
 
     def dislike_action(self, *args, **kw):
         """ Retrieve the list of tags which are selected and send to the
@@ -241,7 +248,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         else:
             win = Gtk.Window(title='GNOME Tagger - Statistics')
         win.set_default_size(400, 200)
-        win.connect('delete-event', Gtk.destroy)
+        win.connect('delete-event', Gtk.main_quit)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
@@ -314,7 +321,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """
         print 'scores_action'
         win = Gtk.Window(title='GNOME Tagger - Leaderboard')
-        win.connect('delete-event', Gtk.desctroy)
+        win.connect('delete-event', Gtk.main_quit)
         win.set_default_size(400, 200)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
@@ -484,6 +491,36 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         else:
             entry_search = self.builder.get_object('entry_search')
             entry_search.set_text('')
+
+    def page_loaded_action(self, view, param, window):
+        """ Callback function called when the a page is loaded.
+        """
+        if not view.get_title():
+            page = view.get_main_frame().get_data_source().get_data().str
+            if '"token":' in page:
+                output = json.loads(page)
+                window.destroy()
+                print dir(view)
+                print output
+                return output
+        print view.get_title()
+
+    def get_user_info(self):
+        """ Pops-up a webkit window used against the Tagger API website
+        to retrieve an API token used later on to authenticate the user.
+        """
+        window = Gtk.Window(title='GNOME Tagger - Login')
+        window.connect('delete-event', Gtk.destroy)
+
+        view = WebKit.WebView()
+        sw = Gtk.ScrolledWindow()
+        window.add(sw)
+        sw.add(view)
+        window.set_size_request(600, 600)
+        view.connect("load-finished", self.page_loaded_action, window)
+        view.load_uri('%s/token/' % TAGGERAPI)
+
+        window.show_all()
 
 
 class GnomeTagger(Gtk.Application):
