@@ -342,10 +342,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if i == 0:
                 cell.props.weight_set = True
                 cell.props.weight = Pango.Weight.BOLD
+            # the column is created
             col = Gtk.TreeViewColumn(headers[i], cell, text=i)
             if i == 1:
                 col.set_min_width(250)
-            # the column is created
             # and it is appended to the treeview
             view.append_column(col)
 
@@ -432,13 +432,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         aboutdialog.set_website('http://github.com/fedora-infra/gnome-tagger')
         aboutdialog.set_website_label('GNOME Tagger Website')
 
-        # we do not want to show the title, which by default would be
-        # 'About AboutDialog Example' we have to reset the title of the
-        # messagedialog window after setting the program name
         aboutdialog.set_title('')
 
-        # to close the aboutdialog when 'close' is clicked we connect the
-        # 'response' signal to on_close
         aboutdialog.connect('response', self.on_close)
         # show the aboutdialog
         aboutdialog.show()
