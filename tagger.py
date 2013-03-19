@@ -236,8 +236,11 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """
         print 'stats_action'
 
-        win = Gtk.Window(title='GNOME Tagger - Statistics')
-        win.connect('delete-event', Gtk.main_quit)
+        if 'window' in kw:
+            win = kw['window']
+        else:
+            win = Gtk.Window(title='GNOME Tagger - Statistics')
+            win.connect('delete-event', Gtk.main_quit)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
@@ -281,7 +284,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             view.append_column(col)
 
         # a grid to attach the widgets
-        grid = Gtk.Grid()
+        if 'grid' in kw:
+            grid = kw['grid']
+        else:
+            grid = Gtk.Grid()
         grid.attach(view, 0, 0, 6, 1)
 
         button = Gtk.Button(label="ok")
@@ -293,7 +299,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         grid.attach(button, 5, 1, 1, 1)
 
         # attach the grid to the window
-        win.add(grid)
+        if not 'grid' in kw:
+            win.add(grid)
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
         win.show_all()
@@ -451,44 +458,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         jsondata = json.loads(data.text)
         self.statistics = jsondata['summary']
 
-        listmodel = Gtk.ListStore(str, str)
-        listmodel.append(['Total number of packages',
-                         str(self.statistics['total_packages'])])
-        listmodel.append(['Total number of tags',
-                         str(self.statistics['total_unique_tags'])])
-        listmodel.append(['Packages with no tags',
-                         str(self.statistics['no_tags'])])
-        listmodel.append(['Packages with tags',
-                         str(self.statistics['with_tags'])])
-        listmodel.append(['Average tags per package',
-                         '%.3f' % self.statistics['tags_per_package']])
-        listmodel.append(['Average tags per package '
-                         '(that have at least one tag)',
-                         '%.4f' % self.statistics[
-                         'tags_per_package_no_zeroes']])
-
-        # a treeview to see the data stored in the model
-        view = Gtk.TreeView(model=listmodel)
-        view.set_headers_visible(False)
-        # for each column
-        for i in range(2):
-            # cellrenderer to render the text
-            cell = Gtk.CellRendererText()
-            # the text in the first column should be in boldface
-            if i == 0:
-                cell.props.weight_set = True
-                cell.props.weight = Pango.Weight.BOLD
-            # the column is created
-            col = Gtk.TreeViewColumn('', cell, text=i)
-            # and it is appended to the treeview
-            view.append_column(col)
-
-        # a grid to attach the widgets
-        grid.attach(view, 0, 0, 6, 1)
-
-        cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
-        self.get_root_window().set_cursor(cursor)
-        window.show_all()
+        self.stats_action(window=window, grid=grid)
 
     def search_action(self, *args, **kw):
         """ Search the package using the search box entry. """
