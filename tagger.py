@@ -240,7 +240,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             win = kw['window']
         else:
             win = Gtk.Window(title='GNOME Tagger - Statistics')
-            win.connect('delete-event', Gtk.main_quit)
+        win.set_default_size(400, 200)
+        win.connect('delete-event', Gtk.destroy)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
@@ -283,24 +284,27 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             # and it is appended to the treeview
             view.append_column(col)
 
-        # a grid to attach the widgets
-        if 'grid' in kw:
-            grid = kw['grid']
+        if 'box' in kw:
+            box = kw['box']
         else:
-            grid = Gtk.Grid()
-        grid.attach(view, 0, 0, 6, 1)
+            box = Gtk.Table(6, 1, False)
+        box.set_vexpand(True)
+        box.set_hexpand(True)
 
-        button = Gtk.Button(label="ok")
+        button = Gtk.Button(label="Ok")
         button.connect("clicked", self.win_close, win)
         button_refresh = Gtk.Button(label="Refresh")
-        button_refresh.connect("clicked", self.refresh_stats, win, grid)
+        button_refresh.connect("clicked", self.refresh_stats, win, box)
 
-        grid.attach(button_refresh, 4, 1, 1, 1)
-        grid.attach(button, 5, 1, 1, 1)
+        box.attach(view, 0, 5, 0, 1)
+        box.attach(button_refresh, 3, 4, 1, 2,
+                   xoptions=Gtk.AttachOptions.FILL|Gtk.AttachOptions.SHRINK)
+        box.attach(button, 4, 5, 1, 2,
+                   xoptions=Gtk.AttachOptions.FILL|Gtk.AttachOptions.SHRINK)
 
         # attach the grid to the window
-        if not 'grid' in kw:
-            win.add(grid)
+        if not 'box' in kw:
+            win.add(box)
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
         win.show_all()
@@ -310,7 +314,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """
         print 'scores_action'
         win = Gtk.Window(title='GNOME Tagger - Leaderboard')
-        win.connect('delete-event', Gtk.main_quit)
+        win.connect('delete-event', Gtk.desctroy)
         win.set_default_size(400, 200)
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
@@ -350,11 +354,11 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         box.set_vexpand(True)
         box.set_hexpand(True)
 
-        button = Gtk.Button(label="ok")
+        button = Gtk.Button(label="Ok")
         button.connect("clicked", self.win_close, win)
 
-        box.attach(view, 0, 6, 0, 1)
-        box.attach(button, 5, 6, 1, 2)
+        box.attach(view, 0, 5, 0, 1)
+        box.attach(button, 4, 5, 1, 2, xoptions=Gtk.AttachOptions.FILL)
 
         # attach the grid to the window
         win.add(box)
@@ -447,7 +451,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Called to close the statistics window. """
         window.destroy()
 
-    def refresh_stats(self, action, window, grid):
+    def refresh_stats(self, action, window, box):
         """ Refresh the statistics on the statistics window. """
         print "refresh_stats"
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
@@ -458,7 +462,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         jsondata = json.loads(data.text)
         self.statistics = jsondata['summary']
 
-        self.stats_action(window=window, grid=grid)
+        self.stats_action(window=window, box=box)
 
     def search_action(self, *args, **kw):
         """ Search the package using the search box entry. """
