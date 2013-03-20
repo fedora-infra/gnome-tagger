@@ -385,7 +385,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 name=jsondata['name'],
                 summary=jsondata['summary'],
                 tags=[tag['tag'] for tag in jsondata['tags']],
-                icon_url=jsondata['icon'],
+                #icon_url=jsondata['icon'],
+                icon_url='https://apps.fedoraproject.org/packages/'
+                         'images/icons/%s.png' % jsondata['name']
             )
         else:
             msg.set_text(jsondata['error'])
@@ -398,7 +400,12 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.pkgname = name
 
         image = self.builder.get_object('image_pkg')
-        response = urllib2.urlopen(icon_url)
+        try:
+            response = urllib2.urlopen(icon_url)
+        except:
+            response = urllib2.urlopen('https://apps.fedoraproject.org/'
+                                       'packages/images/icons/'
+                                       'package_128x128.png')
         loader = GdkPixbuf.PixbufLoader()
         loader.write(response.read())
         image.set_from_pixbuf(loader.get_pixbuf())
