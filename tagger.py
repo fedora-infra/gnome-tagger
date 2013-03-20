@@ -166,7 +166,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         tagfield.set_text('')
         if entries != ['']:
             data = {'pkgname': self.pkgname, 'tag': ','.join(entries)}
-            req = requests.put('%s/tag/guake/' % TAGGERAPI, data=data)
+            req = requests.put('%s/api/tag/%s/' % (TAGGERAPI,
+                               self.pkgname), data=data)
             print req.text
             jsonreq = json.loads(req.text)
             if req.status_code != 200:
@@ -199,8 +200,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if tree_iter:
                 tag = tree_model[tree_iter][0]
                 data['tag'] = tag
-                req = requests.put('%s/vote/guake/' % TAGGERAPI,
-                                   data=data)
+                req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
+                                   self.pkgname), data=data)
                 print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
@@ -226,8 +227,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if tree_iter:
                 tag = tree_model[tree_iter][0]
                 data['tag'] = tag
-                req = requests.put('%s/vote/guake/' % TAGGERAPI,
-                                   data=data)
+                req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
+                                   self.pkgname) data=data)
                 print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
@@ -255,7 +256,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         Gdk.flush()
 
         if not self.statistics:
-            data = requests.get(TAGGERAPI + '/statistics/')
+            data = requests.get('%s/api/statistics/' % TAGGERAPI)
             jsondata = json.loads(data.text)
             self.statistics = jsondata['summary']
 
@@ -328,7 +329,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
-        data = requests.get(TAGGERAPI + '/leaderboard/')
+        data = requests.get('%s/api/leaderboard/' % TAGGERAPI)
         jsondata = json.loads(data.text)
 
         listmodel = Gtk.ListStore(str, str, str)
@@ -382,9 +383,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         Gdk.flush()
         msg = self.builder.get_object('label_msg')
         msg.set_text('')
-        url = '%s/random/' % (TAGGERAPI)
+        url = '%s/api/random/' % (TAGGERAPI)
         if name:
-            url = '%s/%s/' % (TAGGERAPI, name)
+            url = '%s/api/%s/' % (TAGGERAPI, name)
         data = requests.get(url)
         jsondata = json.loads(data.text)
         if data.status_code == 200:
@@ -467,7 +468,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
-        data = requests.get(TAGGERAPI + '/statistics/')
+        data = requests.get('%s/api/statistics/' % TAGGERAPI)
         jsondata = json.loads(data.text)
         self.statistics = jsondata['summary']
 
