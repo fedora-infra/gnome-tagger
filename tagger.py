@@ -85,6 +85,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         settings = Gtk.Settings.get_default()
         settings.props.gtk_button_images = True
 
+        # set the window logo
+        self.set_icon_from_file('tagger.png')
+
         # add icon to the Scores button
         scorebutton = self.builder.get_object('button_scores')
         image = Gtk.Image()
@@ -228,7 +231,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 tag = tree_model[tree_iter][0]
                 data['tag'] = tag
                 req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
-                                   self.pkgname) data=data)
+                                   self.pkgname), data=data)
                 print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
