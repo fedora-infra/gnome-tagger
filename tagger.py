@@ -52,6 +52,7 @@ def error_box(window, message_format):
         messagedialog.connect("response", widget_close)
         messagedialog.show()
 
+
 def widget_close(widget, response_id):
     """ Close the widget whatever the action is. """
     widget.destroy()
@@ -223,7 +224,6 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 data['tag'] = tag
                 req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
                                    self.pkgname), data=data)
-                print req.text
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
                     self.set_messsage(jsonreq['error'], msgtype='error')
@@ -283,8 +283,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 jsondata = json.loads(data.text)
                 self.statistics = jsondata['summary']
             except RequestException, err:
-                error_box(self, "An error occured while trying to connect to %s"
-                    "\nError: %s" %(url, err))
+                error_box(
+                    self,
+                    "An error occured while trying to connect to %s"
+                    "\nError: %s" % (url, err))
                 cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
                 self.get_root_window().set_cursor(cursor)
                 return
@@ -335,9 +337,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         box.attach(view, 0, 5, 0, 1)
         box.attach(button_refresh, 3, 4, 1, 2,
-                   xoptions=Gtk.AttachOptions.FILL|Gtk.AttachOptions.SHRINK)
+                   xoptions=Gtk.AttachOptions.FILL | Gtk.AttachOptions.SHRINK)
         box.attach(button, 4, 5, 1, 2,
-                   xoptions=Gtk.AttachOptions.FILL|Gtk.AttachOptions.SHRINK)
+                   xoptions=Gtk.AttachOptions.FILL | Gtk.AttachOptions.SHRINK)
 
         # attach the grid to the window
         if not 'box' in kw:
@@ -363,8 +365,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             data = requests.get(url)
             jsondata = json.loads(data.text)
         except RequestException, err:
-            error_box(self, "An error occured while trying to connect to %s"
-                "\nError: %s" %(url, err))
+            error_box(
+                self,
+                "An error occured while trying to connect to %s"
+                "\nError: %s" % (url, err))
             cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
             self.get_root_window().set_cursor(cursor)
             return
@@ -438,8 +442,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             else:
                 msg.set_text(jsondata['error'])
         except RequestException, err:
-            error_box(self, "An error occured while trying to connect to %s"
-                "\nError: %s" %(url, err))
+            error_box(
+                self,
+                "An error occured while trying to connect to %s"
+                "\nError: %s" % (url, err))
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
 
