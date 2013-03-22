@@ -27,6 +27,8 @@ import urllib2
 import requests
 import sys
 
+from requests.exceptions import RequestException
+
 from gi.repository import Pango
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -37,6 +39,21 @@ from gi.repository import WebKit
 
 #TAGGERAPI = 'http://209.132.184.171/'
 TAGGERAPI = 'http://127.0.0.1:5000/'
+
+
+def error_box(window, message_format):
+        messagedialog = Gtk.MessageDialog(
+            parent=window,
+            flags=Gtk.DialogFlags.MODAL,
+            type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.OK,
+            message_format=message_format)
+        messagedialog.connect("response", widget_close)
+        messagedialog.show()
+
+def widget_close(widget, response_id):
+    """ Close the widget whatever the action is. """
+    widget.destroy()
 
 
 class GnomeTaggerWindow(Gtk.ApplicationWindow):
@@ -259,9 +276,17 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         Gdk.flush()
 
         if not self.statistics:
-            data = requests.get('%s/api/statistics/' % TAGGERAPI)
-            jsondata = json.loads(data.text)
-            self.statistics = jsondata['summary']
+            url = '%s/api/statistics/' % TAGGERAPI
+            try:
+                data = requests.get(url)
+                jsondata = json.loads(data.text)
+                self.statistics = jsondata['summary']
+            except RequestException, err:
+                error_box(self, "An error occured while trying to connect to %s"
+                    "\nError: %s" %(url, err))
+                cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+                self.get_root_window().set_cursor(cursor)
+                return
 
         listmodel = Gtk.ListStore(str, str)
         listmodel.append(['Total number of packages',
@@ -332,8 +357,16 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
-        data = requests.get('%s/api/leaderboard/' % TAGGERAPI)
-        jsondata = json.loads(data.text)
+        try:
+            url = '%s/api/leaderboard/' % TAGGERAPI
+            data = requests.get(url)
+            jsondata = json.loads(data.text)
+        except RequestException, err:
+            error_box(self, "An error occured while trying to connect to %s"
+                "\nError: %s" %(url, err))
+            cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
+            self.get_root_window().set_cursor(cursor)
+            return
 
         listmodel = Gtk.ListStore(str, str, str)
         for key in sorted([int(it) for it in jsondata.keys()]):
@@ -389,19 +422,23 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         url = '%s/api/random/' % (TAGGERAPI)
         if name:
             url = '%s/api/%s/' % (TAGGERAPI, name)
-        data = requests.get(url)
-        jsondata = json.loads(data.text)
-        if data.status_code == 200:
-            self.set_package_info(
-                name=jsondata['name'],
-                summary=jsondata['summary'],
-                tags=[tag['tag'] for tag in jsondata['tags']],
-                #icon_url=jsondata['icon'],
-                icon_url='https://apps.fedoraproject.org/packages/'
+        try:
+            data = requests.get(url)
+            jsondata = json.loads(data.text)
+            if data.status_code == 200:
+                self.set_package_info(
+                    name=jsondata['name'],
+                    summary=jsondata['summary'],
+                    tags=[tag['tag'] for tag in jsondata['tags']],
+                    #icon_url=jsondata['icon'],
+                    icon_url='https://apps.fedoraproject.org/packages/'
                          'images/icons/%s.png' % jsondata['name']
-            )
-        else:
-            msg.set_text(jsondata['error'])
+                )
+            else:
+                msg.set_text(jsondata['error'])
+        except RequestException, err:
+            error_box(self, "An error occured while trying to connect to %s"
+                "\nError: %s" %(url, err))
         cursor = Gdk.Cursor.new(Gdk.CursorType.ARROW)
         self.get_root_window().set_cursor(cursor)
 
