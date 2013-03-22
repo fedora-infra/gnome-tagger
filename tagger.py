@@ -36,6 +36,7 @@ from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import WebKit
 
+__version__ = '0.1.0'
 
 #TAGGERAPI = 'http://209.132.184.171/'
 TAGGERAPI = 'http://127.0.0.1:5000/'
