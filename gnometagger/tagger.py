@@ -24,6 +24,7 @@ main gnome-tagger file.
 
 import json
 import urllib2
+import os
 import requests
 import sys
 
@@ -40,7 +41,7 @@ __version__ = '0.1.0'
 
 #TAGGERAPI = 'http://209.132.184.171/'
 TAGGERAPI = 'http://127.0.0.1:5000/'
-
+FOLDER = os.path.dirname(__file__)
 
 def error_box(window, message_format):
         messagedialog = Gtk.MessageDialog(
@@ -78,7 +79,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         self.builder = Gtk.Builder()
         # get the file (if it is there)
         try:
-            self.builder.add_from_file('data/tagger.ui')
+            self.builder.add_from_file('%s/data/tagger.ui' % FOLDER)
         except:
             print 'file not found'
             sys.exit()
@@ -105,7 +106,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         settings.props.gtk_button_images = True
 
         # set the window logo
-        self.set_icon_from_file('data/tagger.png')
+        self.set_icon_from_file('%s/data/tagger.png' % FOLDER)
 
         # add icon to the Scores button
         scorebutton = self.builder.get_object('button_scores')
@@ -115,9 +116,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         # like/dislike button to vote on tags
         like_icon = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            'data/like.png', 25, 25)
+            '%s/data/like.png' % FOLDER, 25, 25)
         dislike_icon = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            'data/dislike.png',  25, 25)
+            '%s/data/dislike.png' % FOLDER,  25, 25)
 
         image = Gtk.Image()
         image.set_from_pixbuf(like_icon)
