@@ -39,8 +39,8 @@ from gi.repository import WebKit
 
 __version__ = '0.1.0'
 
-#TAGGERAPI = 'http://209.132.184.171/'
-TAGGERAPI = 'http://127.0.0.1:5000/'
+TAGGERAPI = 'http://209.132.184.171/'
+#TAGGERAPI = 'http://127.0.0.1:5000/'
 FOLDER = os.path.dirname(__file__)
 
 def error_box(window, message_format):
@@ -153,6 +153,14 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         self.get_package('firefox')
 
+    @property
+    def auth(self):
+        """ Return the correct dictionnary to use with the
+        authentification header of requests using the self.user
+        information.
+        """
+        return (self.user['name'], self.user['token'])
+
     def set_messsage(self, message, msgtype='info'):
         """ Set a message into the information label. """
         msg = self.builder.get_object('label_msg')
@@ -177,7 +185,6 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
         if not self.user:
             self.get_user_info()
-        print self.user
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
@@ -191,7 +198,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         if entries != ['']:
             data = {'pkgname': self.pkgname, 'tag': ','.join(entries)}
             req = requests.put('%s/api/tag/%s/' % (TAGGERAPI,
-                               self.pkgname), data=data)
+                               self.pkgname),
+                               data=data, auth=self.auth)
             print req.text
             jsonreq = json.loads(req.text)
             if req.status_code != 200:
@@ -212,8 +220,17 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         If no tags are selected show an error dialog.
         """
         print 'like_click'
+        self.vote(1)
+
+    def vote(self, vote):
+        """ Vote on the selected tag either positively or negatively
+        according to the specified vote.
+        """
+        if not self.user:
+            self.get_user_info()
+
         self.set_messsage('')
-        data = {'pkgname': self.pkgname, 'vote': '1'}
+        data = {'pkgname': self.pkgname, 'vote': vote}
         treeview = self.builder.get_object('treeview1')
         selection = treeview.get_selection()
         tree_model, rows = selection.get_selected_rows()
@@ -225,7 +242,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 tag = tree_model[tree_iter][0]
                 data['tag'] = tag
                 req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
-                                   self.pkgname), data=data)
+                                   self.pkgname),
+                                   data=data, auth=self.auth)
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
                     self.set_messsage(jsonreq['error'], msgtype='error')
@@ -238,26 +256,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         If no tags are selected show an error dialog.
         """
         print 'dislike_click'
-        self.set_messsage('')
-        data = {'pkgname': self.pkgname, 'vote': '-1'}
-        treeview = self.builder.get_object('treeview1')
-        selection = treeview.get_selection()
-        tree_model, rows = selection.get_selected_rows()
-        if not rows:
-            self.set_messsage('No tag(s) selected', msgtype='error')
-            return
-        for tree_iter in rows:
-            if tree_iter:
-                tag = tree_model[tree_iter][0]
-                data['tag'] = tag
-                req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
-                                   self.pkgname), data=data)
-                print req.text
-                jsonreq = json.loads(req.text)
-                if req.status_code != 200:
-                    self.set_messsage(jsonreq['error'], msgtype='error')
-                else:
-                    self.set_messsage('\n'.join(jsonreq['messages']))
+        self.vote(1)
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a
@@ -550,8 +549,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if '"token":' in page:
                 output = json.loads(page)
                 window.destroy()
-                print dir(view)
                 print output
+                self.user = output
                 return output
         print view.get_title()
 
@@ -560,7 +559,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         to retrieve an API token used later on to authenticate the user.
         """
         window = Gtk.Window(title='GNOME Tagger - Login')
-        window.connect('delete-event', Gtk.destroy)
+        window.connect('delete-event', Gtk.main_quit)
 
         view = WebKit.WebView()
         sw = Gtk.ScrolledWindow()
@@ -568,7 +567,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         sw.add(view)
         window.set_size_request(600, 600)
         view.connect("load-finished", self.page_loaded_action, window)
-        view.load_uri('%s/token/' % TAGGERAPI)
+        view.load_uri('%s/api/token/' % TAGGERAPI)
 
         window.show_all()
 
