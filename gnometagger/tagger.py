@@ -262,7 +262,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         If no tags are selected show an error dialog.
         """
         print 'dislike_click'
-        self.vote(1)
+        self.vote(-1)
 
     def stats_action(self, *args, **kw):
         """ Retrieves statistics from the server and display them in a
