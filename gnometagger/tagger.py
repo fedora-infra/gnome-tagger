@@ -184,7 +184,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         print 'add_tag_action'
 
         if not self.user:
-            self.get_user_info()
+            self.get_user_info(self.add_tag_action)
+            return
 
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
@@ -226,8 +227,13 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Vote on the selected tag either positively or negatively
         according to the specified vote.
         """
+
         if not self.user:
-            self.get_user_info()
+            if vote == 1:
+                self.get_user_info(self.like_action)
+            else:
+                self.get_user_info(self.dislike_action)
+            return
 
         self.set_messsage('')
         data = {'pkgname': self.pkgname, 'vote': vote}
@@ -541,7 +547,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             entry_search = self.builder.get_object('entry_search')
             entry_search.set_text('')
 
-    def page_loaded_action(self, view, param, window):
+    def page_loaded_action(self, view, param, window, callback):
         """ Callback function called when the a page is loaded.
         """
         if not view.get_title():
@@ -551,10 +557,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                 window.destroy()
                 print output
                 self.user = output
-                return output
+                callback()
         print view.get_title()
 
-    def get_user_info(self):
+    def get_user_info(self, callback):
         """ Pops-up a webkit window used against the Tagger API website
         to retrieve an API token used later on to authenticate the user.
         """
@@ -566,7 +572,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         window.add(sw)
         sw.add(view)
         window.set_size_request(600, 600)
-        view.connect("load-finished", self.page_loaded_action, window)
+        view.connect("load-finished", self.page_loaded_action,
+                     window, callback)
         view.load_uri('%s/api/token/' % TAGGERAPI)
 
         window.show_all()
