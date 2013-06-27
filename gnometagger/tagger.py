@@ -441,7 +441,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
                          'images/icons/%s.png' % jsondata['name']
                 )
             else:
-                msg.set_text(jsondata['error'], msgtype='error')
+                self.set_messsage(jsondata['error'], msgtype='error')
         except RequestException, err:
             error_box(
                 self,
