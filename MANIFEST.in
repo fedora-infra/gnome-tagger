@@ -1,3 +1,2 @@
 include COPYING README.rst requirements.txt
-incluge gnometagger/
-
+recursive-include gnometagger *
