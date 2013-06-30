@@ -22,6 +22,15 @@ Dependencies:
 - `pygobject3 <https://live.gnome.org/PyGObject>`_
 
 
+Test the project:
+----------------
+
+After downloading the sources and installing the dependencies simply run
+
+::
+  python gnometagger/tagger.py
+
+
 License:
 --------
 
