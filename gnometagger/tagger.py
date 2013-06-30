@@ -22,7 +22,9 @@
 main gnome-tagger file.
 '''
 
+import argparse
 import json
+import logging
 import urllib2
 import os
 import requests
@@ -39,8 +41,9 @@ from gi.repository import WebKit
 
 __version__ = '0.1.0'
 
-TAGGERAPI = 'http://209.132.184.171/'
-#TAGGERAPI = 'http://127.0.0.1:5000/'
+TAGGERAPI = 'https://apps.fedoraproject.org/tagger/api/v1/'
+logging.basicConfig()
+LOG = logging.getLogger('gnometagger')
 FOLDER = os.path.dirname(__file__)
 
 def error_box(window, message_format):
@@ -65,6 +68,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         window = Gtk.Window.__init__(self, title='GNOME Tagger',
                                      application=app)
 
+        self.debug = app.debug
         self.pkgname = None
         self.statistics = None
         self.user = None
@@ -173,7 +177,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Retrieve information about the next (random) package and update
         the GUI accordingly.
         """
-        print 'next_pkg_action'
+        LOG.info('next_pkg_action')
         self.set_messsage('')
         self.get_package()
 
@@ -181,7 +185,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Retrieve the tags from `entry_tag` and send them to the server,
         update the GUI afterward.
         """
-        print 'add_tag_action'
+        LOG.info('add_tag_action')
 
         if not self.user:
             self.get_user_info(self.add_tag_action)
@@ -198,10 +202,11 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         tagfield.set_text('')
         if entries != ['']:
             data = {'pkgname': self.pkgname, 'tag': ','.join(entries)}
-            req = requests.put('%s/api/tag/%s/' % (TAGGERAPI,
+            req = requests.put('%s/tag/%s/' % (TAGGERAPI,
                                self.pkgname),
-                               data=data, auth=self.auth)
-            print req.text
+                               data=data, auth=self.auth,
+                               verify=not self.debug)
+            LOG.info('output: {0}'.format(req.text))
             jsonreq = json.loads(req.text)
             if req.status_code != 200:
                 self.set_messsage(jsonreq['error'], msgtype='error')
@@ -220,7 +225,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         server that they have been 'licked'.
         If no tags are selected show an error dialog.
         """
-        print 'like_click'
+        LOG.info('like_click')
         self.vote(1)
 
     def vote(self, vote):
@@ -247,9 +252,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if tree_iter:
                 tag = tree_model[tree_iter][0]
                 data['tag'] = tag
-                req = requests.put('%s/api/vote/%s/' % (TAGGERAPI,
+                req = requests.put('%s/vote/%s/' % (TAGGERAPI,
                                    self.pkgname),
-                                   data=data, auth=self.auth)
+                                   data=data, auth=self.auth,
+                                   verify=not self.debug)
                 jsonreq = json.loads(req.text)
                 if req.status_code != 200:
                     self.set_messsage(jsonreq['error'], msgtype='error')
@@ -261,7 +267,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         server that they have been 'dislicked'.
         If no tags are selected show an error dialog.
         """
-        print 'dislike_click'
+        LOG.info('dislike_click')
         self.vote(-1)
 
     def stats_action(self, *args, **kw):
@@ -270,7 +276,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         These statistics include general statistics on the coverage of
         Tag per packages and the leaderboard of the game.
         """
-        print 'stats_action'
+        LOG.info('stats_action')
 
         if 'window' in kw:
             win = kw['window']
@@ -284,9 +290,9 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         Gdk.flush()
 
         if not self.statistics:
-            url = '%s/api/statistics/' % TAGGERAPI
+            url = '%s/statistics/' % TAGGERAPI
             try:
-                data = requests.get(url)
+                data = requests.get(url, verify=not self.debug)
                 jsondata = json.loads(data.text)
                 self.statistics = jsondata['summary']
             except RequestException, err:
@@ -358,7 +364,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
     def scores_action(self, button):
         """ Shows the leaderboard window with the scores information.
         """
-        print 'scores_action'
+        LOG.info('scores_action')
         win = Gtk.Window(title='GNOME Tagger - Leaderboard')
         win.connect('delete-event', Gtk.main_quit)
         win.set_default_size(400, 200)
@@ -368,8 +374,8 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         Gdk.flush()
 
         try:
-            url = '%s/api/leaderboard/' % TAGGERAPI
-            data = requests.get(url)
+            url = '%s/leaderboard/' % TAGGERAPI
+            data = requests.get(url, verify=not self.debug)
             jsondata = json.loads(data.text)
         except RequestException, err:
             error_box(
@@ -426,16 +432,17 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         """ Retrieve the information about a package if the name if set, a
         random package if the name is None.
         """
+        LOG.info('get_package')
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
         msg = self.builder.get_object('label_msg')
         msg.set_text('')
-        url = '%s/api/random/' % (TAGGERAPI)
+        url = '%s/random/' % (TAGGERAPI)
         if name:
-            url = '%s/api/%s/' % (TAGGERAPI, name)
+            url = '%s/%s/' % (TAGGERAPI, name)
         try:
-            data = requests.get(url)
+            data = requests.get(url, verify=not self.debug)
             jsondata = json.loads(data.text)
             if data.status_code == 200:
                 self.set_package_info(
@@ -485,6 +492,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
     def about_action(self, action, parameter):
         """ Show the about window. """
+        LOG.info('about_action')
         aboutdialog = Gtk.AboutDialog()
 
         # lists of authors and documenters (will be used later)
@@ -517,12 +525,13 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
     def refresh_stats(self, action, window, box):
         """ Refresh the statistics on the statistics window. """
-        print "refresh_stats"
+        LOG.info('refresh_stats')
         cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.get_root_window().set_cursor(cursor)
         Gdk.flush()
 
-        data = requests.get('%s/api/statistics/' % TAGGERAPI)
+        data = requests.get('%s/statistics/' % TAGGERAPI,
+                            verify=not self.debug)
         jsondata = json.loads(data.text)
         self.statistics = jsondata['summary']
 
@@ -530,7 +539,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
 
     def search_action(self, *args, **kw):
         """ Search the package using the search box entry. """
-        print 'search_action'
+        LOG.info('search_action')
         entry_search = self.builder.get_object('entry_search')
         pkg_search = entry_search.get_text().strip()
         if pkg_search:
@@ -540,7 +549,7 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
     def search_icon_action(self, entry, icon_pos, even):
         """ Search or clear the search box according to the icon clicked.
         """
-        print 'search_icon_action'
+        LOG.info('search_icon_action')
         if icon_pos == Gtk.EntryIconPosition.PRIMARY:
             self.search_action()
         else:
@@ -555,10 +564,10 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
             if '"token":' in page:
                 output = json.loads(page)
                 window.destroy()
-                print output
+                LOG.info('output: {0}'.format(output))
                 self.user = output
                 callback()
-        print view.get_title()
+        LOG.info('title: {0}'.format(view.get_title()))
 
     def get_user_info(self, callback):
         """ Pops-up a webkit window used against the Tagger API website
@@ -574,15 +583,16 @@ class GnomeTaggerWindow(Gtk.ApplicationWindow):
         window.set_size_request(600, 600)
         view.connect("load-finished", self.page_loaded_action,
                      window, callback)
-        view.load_uri('%s/api/token/' % TAGGERAPI)
+        view.load_uri('%s/token/' % TAGGERAPI)
 
         window.show_all()
 
 
 class GnomeTagger(Gtk.Application):
 
-    def __init__(self):
+    def __init__(self, debug=False):
         Gtk.Application.__init__(self)
+        self.debug = debug
 
     def do_activate(self):
         win = GnomeTaggerWindow(self)
@@ -607,14 +617,31 @@ class GnomeTagger(Gtk.Application):
 
     # callback function for 'quit'
     def quit_action(self, action, parameter):
-        print 'You have quit.'
+        LOG.info('You have quit.')
         self.quit()
+
+
+def setup_parser():
+    parser = argparse.ArgumentParser()
+    # General connection options
+    parser.add_argument(
+        '--debug', default=False, action='store_true',
+        help='Provide additionnal output for debugging and use the '
+            'stagging instance of fedora-tagger')
+    return parser
 
 
 def main():
     """ Main function. """
-    app = GnomeTagger()
-    exit_status = app.run(sys.argv)
+    parser = setup_parser()
+    arg = parser.parse_args()
+    LOG.setLevel(logging.DEBUG)
+    if arg.debug:
+        LOG.setLevel(logging.INFO)
+        global TAGGERAPI
+        TAGGERAPI = 'https://apps.stg.fedoraproject.org/tagger/api/v1/'
+    app = GnomeTagger(arg.debug)
+    exit_status = app.run([])
     sys.exit(exit_status)
 
 
